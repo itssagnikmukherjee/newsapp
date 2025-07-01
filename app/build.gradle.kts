@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("kapt")
+    id("com.google.dagger.hilt.android")
+    kotlin("plugin.serialization") version "2.2.0"
 }
 
 android {
@@ -41,6 +43,18 @@ android {
 }
 
 dependencies {
+
+    //navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+
+    //dagger hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
+
+    //hilt viewmodel
+    implementation(libs.androidx.hilt.navigation.compose)
+    kapt(libs.androidx.hilt.compiler)
 
     //Retrofit
     implementation(libs.retrofit)
