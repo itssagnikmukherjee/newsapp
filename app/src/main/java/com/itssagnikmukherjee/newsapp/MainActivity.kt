@@ -1,10 +1,12 @@
 package com.itssagnikmukherjee.newsapp
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,12 +26,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("ViewModelConstructorInComposable")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            NewsappTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val context = LocalContext.current
                     val db = Room.databaseBuilder(context, AppDatabase::class.java, "news-db").build()
@@ -40,10 +42,7 @@ class MainActivity : ComponentActivity() {
                         .create(NewsApiService::class.java)
                     val repo = NewsRepository(api, db.articleDao())
                     val viewmodel = NewsViewModel(repo)
-                    Column(Modifier.padding(innerPadding)){
                          NewsScreen(viewModel = viewmodel)
-                    }
-                }
             }
         }
     }
