@@ -17,11 +17,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.itssagnikmukherjee.newsapp.data.common.ResultState
 import com.itssagnikmukherjee.newsapp.data.const.Const.API_KEY
 import com.itssagnikmukherjee.newsapp.data.local.ArticleEntity
 import com.itssagnikmukherjee.newsapp.ui.theme.DarkGray
@@ -50,7 +53,7 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier) {
-    val articles = viewModel.articles.observeAsState(emptyList())
+    val newsState = viewModel.newsState.collectAsState()
     val apiKey = API_KEY
 
     LaunchedEffect(Unit) {
@@ -95,9 +98,21 @@ fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier) {
                 Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
             }
         }
-        LazyColumn(modifier = modifier) {
-            items(articles.value.size) { article ->
-                    NewsArticleItem(article = articles.value[article])
+        when(newsState.value){
+            is ResultState.Loading ->{
+                CircularProgressIndicator()
+            }
+            is ResultState.Success ->{
+                val articles = (newsState.value as ResultState.Success<List<ArticleEntity>>).data
+                LazyColumn{
+                    items(articles.size){
+                        NewsArticleItem(articles[it])
+                    }
+                }
+            }
+            is ResultState.Error ->{
+                val errorMessage = (newsState.value as ResultState.Error).message
+                Text(text = errorMessage)
             }
         }
     }
