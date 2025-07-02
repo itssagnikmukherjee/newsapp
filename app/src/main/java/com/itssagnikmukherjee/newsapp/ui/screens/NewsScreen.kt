@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,10 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.itssagnikmukherjee.newsapp.data.common.ResultState
 import com.itssagnikmukherjee.newsapp.data.const.Const.API_KEY
 import com.itssagnikmukherjee.newsapp.data.local.ArticleEntity
+import com.itssagnikmukherjee.newsapp.ui.navigation.ArticleScreen
 import com.itssagnikmukherjee.newsapp.ui.theme.DarkGray
 import com.itssagnikmukherjee.newsapp.ui.theme.Gray
 import com.itssagnikmukherjee.newsapp.ui.theme.MyFont
@@ -52,7 +55,7 @@ import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier) {
+fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier, navController: NavController) {
     val newsState = viewModel.newsState.collectAsState()
     val apiKey = API_KEY
 
@@ -60,20 +63,21 @@ fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier) {
         viewModel.refresh(apiKey)
     }
     Column(
-        modifier = Modifier.fillMaxSize().background(DarkGray).padding(top = 50.dp, start = 20.dp, end = 20.dp)
+        modifier = Modifier.fillMaxSize().background(DarkGray).padding(top = 30.dp, start = 20.dp, end = 20.dp)
     ){
         Row (
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ){
-            Row {
+            Row(
+                modifier = Modifier.padding(vertical = 20.dp)
+            ){
                 Text(
                     "News",
                     fontSize = 36.sp,
                     fontFamily = MyFont,
                     fontWeight = FontWeight.Bold,
-                    modifier = modifier.padding(vertical = 20.dp),
                     color = MyRed
                 )
                 Text(
@@ -81,7 +85,6 @@ fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier) {
                     fontSize = 32.sp,
                     fontFamily = MyFont,
                     fontWeight = FontWeight.Bold,
-                    modifier = modifier.padding(vertical = 20.dp),
                     color = Color.White
                 )
                 Text(
@@ -89,7 +92,6 @@ fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier) {
                     fontSize = 36.sp,
                     fontFamily = MyFont,
                     fontWeight = FontWeight.Bold,
-                    modifier = modifier.padding(vertical = 20.dp),
                     color = MyRed
                 )
             }
@@ -100,13 +102,13 @@ fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier) {
         }
         when(newsState.value){
             is ResultState.Loading ->{
-                CircularProgressIndicator()
+                ShimmerScreen()
             }
             is ResultState.Success ->{
-                val articles = (newsState.value as ResultState.Success<List<ArticleEntity>>).data
+                val articles = (newsState.value as ResultState.Success<List<ArticleEntity>>).data.reversed()
                 LazyColumn{
                     items(articles.size){
-                        NewsArticleItem(articles[it])
+                        NewsArticleItem(articles[it], navController = navController)
                     }
                 }
             }
@@ -120,9 +122,18 @@ fun NewsScreen(viewModel: NewsViewModel, modifier: Modifier = Modifier) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NewsArticleItem(article: ArticleEntity) {
+fun NewsArticleItem(article: ArticleEntity, navController: NavController) {
     Box(
-        modifier = Modifier.padding(vertical = 10.dp).clip(RoundedCornerShape(20.dp))
+        modifier = Modifier.padding(vertical = 10.dp).clip(RoundedCornerShape(20.dp)).clickable{
+            navController.navigate(
+                ArticleScreen(
+                    url = article.url,
+                    title = article.title,
+                    description = article.description ?: "",
+                    imageUrl = article.urlToImage ?: "",
+                    publishedAt = article.publishedAt)
+            )
+        }
     ){
     Column(
         modifier = Modifier
@@ -139,7 +150,7 @@ fun NewsArticleItem(article: ArticleEntity) {
 
         if (article.description != null) {
             Text(
-                text = article.description,
+                text = article.description.split(" ").take(7).joinToString(" ").plus("..."),
                 modifier = Modifier.padding(vertical = 10.dp),
                 fontFamily = monsterat,
                 fontSize = 14.sp
