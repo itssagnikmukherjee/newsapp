@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.itssagnikmukherjee.newsapp.ui.navigation.MainScreen
+import com.itssagnikmukherjee.newsapp.ui.navigation.SplashScreen
 import com.itssagnikmukherjee.newsapp.ui.theme.DarkGray
 import com.itssagnikmukherjee.newsapp.ui.theme.MyFont
 import com.itssagnikmukherjee.newsapp.ui.theme.MyRed
@@ -25,16 +26,21 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(modifier: Modifier = Modifier, navController: NavController) {
+
+    LaunchedEffect(Unit) {
+        delay(1000)
+        navController.navigate(MainScreen){
+            popUpTo(SplashScreen){
+                inclusive = true
+            }
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxSize().background(DarkGray),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-
-        LaunchedEffect(Unit) {
-            delay(1000)
-            navController.navigate(MainScreen)
-        }
         Row (
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
